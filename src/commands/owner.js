@@ -1,0 +1,26 @@
+const { SlashCommandBuilder } = require("discord.js");
+const config = require("../../config");
+const { addOwner } = require("../utils/owners");
+
+function isSys(userId) {
+  return Array.isArray(config.SYS) && config.SYS.includes(userId);
+}
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName("owner")
+    .setDescription("Ajouter un owner du bot (SYS only)")
+    .addUserOption(opt => opt.setName("membre").setDescription("Membre à ajouter owner").setRequired(true)),
+
+  async execute(interaction) {
+    if (!isSys(interaction.user.id)) {
+      return interaction.reply({ content: "❌ Permission refusée.", ephemeral: true });
+    }
+    const user = interaction.options.getUser("membre", true);
+    const owners = addOwner(user.id);
+    return interaction.reply({
+      content: `✅ <@${user.id}> ajouté owner.\n👑 Owners: ${owners.length ? owners.map(id => `<@${id}>`).join(", ") : "Aucun"}`,
+      ephemeral: true
+    });
+  }
+};
